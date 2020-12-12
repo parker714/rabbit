@@ -17,28 +17,22 @@ var (
 	ErrServerClosed     = errors.New("rabbit: server was closed")
 )
 
-func (s *Session) Publish(exchangeName, routingKey string, msg []byte) error {
+func (s *session) Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
 	s.RLock()
 	defer s.RUnlock()
 
 	return s.Channel.Publish(
-		exchangeName,
-		routingKey,
-		false,
-		false,
-		amqp.Publishing{
-			// Marking messages as persistent doesn't fully guarantee that a message won't be lost.
-			// if you need a stronger guarantee then you can use publish confirms.
-			DeliveryMode: amqp.Persistent,
-			ContentType:  "application/json",
-			Body:         msg,
-		},
+		exchange,
+		key,
+		mandatory,
+		immediate,
+		msg,
 	)
 }
 
 // RePublish is a rabbit server confirmation publish mode.
 // when the publish fails, it will be published back multiple times by default. (eg: rePublishTimes)
-func (s *Session) RePublish(exchangeName, routingKey string, msg []byte) error {
+func (s *session) RePublish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
 	var publishTimes int
 	for {
 		if publishTimes > rePublishTimes {
@@ -46,7 +40,7 @@ func (s *Session) RePublish(exchangeName, routingKey string, msg []byte) error {
 		}
 		publishTimes++
 
-		if err := s.Publish(exchangeName, routingKey, msg); err != nil {
+		if err := s.Publish(exchange, key, mandatory, immediate, msg); err != nil {
 			log.Printf("rabbit: RePublish failed, err: %s\n", err)
 			continue
 		}

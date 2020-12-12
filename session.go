@@ -18,7 +18,16 @@ const (
 	defaultLocale    = "en_US"
 )
 
-type Session struct {
+type Session interface {
+	Close() error
+	IsClosed() bool
+	Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error
+	RePublish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error
+	Consume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table) (<-chan amqp.Delivery, error)
+	ReConsume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table, callback func(amqp.Delivery))
+}
+
+type session struct {
 	sync.RWMutex
 
 	connection *amqp.Connection
@@ -32,7 +41,7 @@ type Session struct {
 	close       chan struct{}
 }
 
-func New(url string) (*Session, error) {
+func New(url string) (Session, error) {
 	config := amqp.Config{
 		Heartbeat: defaultHeartbeat,
 		Locale:    defaultLocale,
@@ -41,9 +50,9 @@ func New(url string) (*Session, error) {
 	return NewConfig(url, config)
 }
 
-func NewConfig(url string, config amqp.Config) (*Session, error) {
+func NewConfig(url string, config amqp.Config) (Session, error) {
 	var err error
-	s := &Session{
+	s := &session{
 		notifyClose: make(chan struct{}),
 		close:       make(chan struct{}),
 	}
@@ -59,7 +68,7 @@ func NewConfig(url string, config amqp.Config) (*Session, error) {
 	return s, err
 }
 
-func (s *Session) openChannel() (err error) {
+func (s *session) openChannel() (err error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -81,7 +90,7 @@ func (s *Session) openChannel() (err error) {
 	return
 }
 
-func (s *Session) handleConnect(url string, config amqp.Config) {
+func (s *session) handleConnect(url string, config amqp.Config) {
 	var err error
 	for {
 		s.connection, err = amqp.DialConfig(url, config)
@@ -100,7 +109,7 @@ func (s *Session) handleConnect(url string, config amqp.Config) {
 	}
 }
 
-func (s *Session) handleChannel() bool {
+func (s *session) handleChannel() bool {
 	for {
 		if err := s.openChannel(); err != nil {
 			log.Printf("rabbit: channel open failed, err: %s\n", err)
@@ -123,7 +132,7 @@ func (s *Session) handleChannel() bool {
 	}
 }
 
-func (s *Session) Close() error {
+func (s *session) Close() error {
 	s.RLock()
 	defer s.RUnlock()
 
@@ -140,7 +149,7 @@ func (s *Session) Close() error {
 	return nil
 }
 
-func (s *Session) IsClosed() bool {
+func (s *session) IsClosed() bool {
 	s.RLock()
 	defer s.RUnlock()
 

@@ -6,27 +6,27 @@ import (
 	"time"
 )
 
-func (s *Session) Consume(queueName string) (<-chan amqp.Delivery, error) {
+func (s *session) Consume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table) (<-chan amqp.Delivery, error) {
 	s.RLock()
 	defer s.RUnlock()
 
 	return s.Channel.Consume(
-		queueName,
-		queueName,
-		false,
-		false,
-		false,
-		false,
-		nil,
+		queue,
+		consumer,
+		autoAck,
+		exclusive,
+		noLocal,
+		noWait,
+		args,
 	)
 }
 
 // Consume used for consumption queue message.
 // must handle message receipts(Ack or Nack) in callback func,
 // otherwise the message will be returned to the queue after consumer disconnect.
-func (s *Session) ReConsume(queueName string, callback func(amqp.Delivery)) {
+func (s *session) ReConsume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table, callback func(amqp.Delivery)) {
 	for {
-		dd, err := s.Consume(queueName)
+		dd, err := s.Consume(queue, consumer, autoAck, exclusive, noLocal, noWait, args)
 		if err != nil {
 			log.Printf("rabbit: reconsume failed, err: %s\n", err)
 			<-time.After(reConnectionDelay)
@@ -41,11 +41,11 @@ func (s *Session) ReConsume(queueName string, callback func(amqp.Delivery)) {
 			case <-s.notifyClose:
 				log.Println("rabbit: re-consume failed, connection or channel was closed, waiting to reconnect and re-consume")
 				<-time.After(reConnectionDelay)
-				goto RECONSUME
+				goto ReConsume
 			case msg := <-dd:
 				go callback(msg)
 			}
 		}
-	RECONSUME:
+	ReConsume:
 	}
 }
