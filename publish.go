@@ -13,10 +13,13 @@ const (
 )
 
 var (
+	// ErrOverPublishTimes ...
 	ErrOverPublishTimes = errors.New("rabbit: re-publish failed, more than rePublishTimes")
-	ErrServerClosed     = errors.New("rabbit: server was closed")
+	// ErrServerClosed ...
+	ErrServerClosed = errors.New("rabbit: server was closed")
 )
 
+// Publish used send msg.
 func (s *session) Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
 	s.RLock()
 	defer s.RUnlock()

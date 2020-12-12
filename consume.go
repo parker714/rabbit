@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Consume used for consumption queue message.
 func (s *session) Consume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table) (<-chan amqp.Delivery, error) {
 	s.RLock()
 	defer s.RUnlock()
@@ -21,7 +22,7 @@ func (s *session) Consume(queue, consumer string, autoAck, exclusive, noLocal, n
 	)
 }
 
-// Consume used for consumption queue message.
+// ReConsume used for consumption queue message.
 // must handle message receipts(Ack or Nack) in callback func,
 // otherwise the message will be returned to the queue after consumer disconnect.
 func (s *session) ReConsume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table, callback func(amqp.Delivery)) {

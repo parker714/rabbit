@@ -18,6 +18,7 @@ const (
 	defaultLocale    = "en_US"
 )
 
+// Session is rabbit interface.
 type Session interface {
 	Close() error
 	IsClosed() bool
@@ -41,6 +42,7 @@ type session struct {
 	close       chan struct{}
 }
 
+// New returns Session instance.
 func New(url string) (Session, error) {
 	config := amqp.Config{
 		Heartbeat: defaultHeartbeat,
@@ -50,6 +52,7 @@ func New(url string) (Session, error) {
 	return NewConfig(url, config)
 }
 
+// NewConfig used config.
 func NewConfig(url string, config amqp.Config) (Session, error) {
 	var err error
 	s := &session{
@@ -132,6 +135,7 @@ func (s *session) handleChannel() bool {
 	}
 }
 
+// Close used close connect.
 func (s *session) Close() error {
 	s.RLock()
 	defer s.RUnlock()
@@ -149,6 +153,7 @@ func (s *session) Close() error {
 	return nil
 }
 
+// IsClosed show current connect status.
 func (s *session) IsClosed() bool {
 	s.RLock()
 	defer s.RUnlock()

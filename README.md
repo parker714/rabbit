@@ -2,8 +2,11 @@ Rabbit
 ------------
 This project is based on [ampq](https://github.com/streadway/amqp) and has been added auto reconnect and re-synchronization of client and more publish.
 
-[![GitHub license](https://img.shields.io/github/license/parker714/rabbit)](https://github.com/parker714/rabbit/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/parker714/rabbit.svg?branch=master)](https://travis-ci.org/parker714/rabbit)
+[![Coverage Status](https://coveralls.io/repos/github/parker714/rabbit/badge.svg?branch=master)](https://coveralls.io/github/parker714/rabbit?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/parker714/rabbit)](https://goreportcard.com/report/github.com/parker714/rabbit)
 [![Release](https://img.shields.io/github/release/parker714/rabbit.svg)](https://github.com/parker714/rabbit/releases)
+[![GitHub license](https://img.shields.io/github/license/parker714/rabbit)](https://github.com/parker714/rabbit/blob/master/LICENSE)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/parker714/rabbit)
 
 Overview
