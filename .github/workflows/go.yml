@@ -44,3 +44,6 @@ jobs:
       
     - name: Codecov
       uses: codecov/codecov-action@v1.0.14
+      with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          file: ./coverage.txt
